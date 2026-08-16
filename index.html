@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Page <title> is site chrome, not business copy. Change here if the brand name changes. -->
+  <title>OfflineOffsite</title>
+  <meta name="description" content="">
+  <meta name="color-scheme" content="dark">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+
+  <header id="nav">
+    <div class="nav-inner">
+      <a id="brand" href="#top" aria-label="Home"></a>
+
+      <nav id="navlinks" aria-label="Sections"><!-- Primary section links injected by app.js --></nav>
+
+      <div class="nav-right">
+        <a id="pdfBtn" class="btn" download></a>
+        <button id="hamburger" class="hamburger" aria-label="Menu" aria-controls="navlinks" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <span id="top"></span>
+
+  <!-- All sections are injected here from /pages/*.txt at load time. No copy lives in this file. -->
+  <main id="content"></main>
+
+  <div id="status" class="status" role="status" aria-live="polite" hidden></div>
+
+  <button id="toTop" class="to-top" aria-label="Back to top" hidden>
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+      <path d="M12 5l-7 7h4v7h6v-7h4z" fill="currentColor"/>
+    </svg>
+  </button>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

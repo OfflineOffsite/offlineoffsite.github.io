@@ -1,0 +1,9 @@
+01 Primary
+HEADER How It Works
+SUBHEADER Five steps, entirely by mail.
+BODY 1. Encrypt your drive. We strongly recommend encrypting your device and files before you ship them. Your data is your responsibility.
+BODY 2. Download and print the form. Use the button at the top of this page to print the OfflineOffsite mail-in form, then fill it out by hand.
+BODY 3. Pack your parcel. Place your device, the printed form, cash for payment, and a prepaid USPS return-address label inside an accepted USPS Priority Mail Flat-Rate box or envelope.
+BODY 4. Mail it to us. Send your parcel to the address in the Contact section.
+BODY 5. We store it, then return it. We keep your drive offline and offsite for your chosen term, then ship it back using the USPS return label you provided.
+NOTE We work exclusively with USPS because USPS return labels remain valid for up to 365 days — longer than any other major carrier.

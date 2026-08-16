@@ -1,0 +1,12 @@
+06 Primary
+HEADER FAQ
+SUBHEADER Why USPS only?
+BODY USPS return-address labels stay valid for up to 365 days, far longer than other carriers offer. That lets us hold your drive and still return it on the label you sent.
+SUBHEADER Do you keep any of my data or personal information?
+BODY No. We collect no personal information, create no accounts, and never access the contents of your device.
+SUBHEADER What if my drive fails in storage?
+BODY We store media offline and untouched, but we cannot guarantee hardware. Encrypt your data and keep an independent backup. See Encryption & Responsibility.
+SUBHEADER How do I get my device back?
+BODY We ship it to you using the prepaid USPS return-address label you included with your parcel.
+SUBHEADER Can I extend my storage term?
+BODY Yes. [PLACEHOLDER: describe how to extend a term and send additional payment.]
