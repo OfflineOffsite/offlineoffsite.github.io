@@ -201,8 +201,8 @@ img { max-width: 100%; height: auto; display: block; border-radius: var(--radius
   scroll-margin-top: calc(var(--nav-h) + 12px);
   padding: 1.4rem 0;
 }
-.band-inner a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-.band-inner a:hover { filter: brightness(1.15); }
+.band-inner a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.band-inner a:hover { text-decoration-thickness: 2px; }
 .align-c { text-align: center; }
 .align-j { text-align: justify; text-justify: inter-word; }
 .align-l { text-align: left; }
@@ -318,7 +318,7 @@ img { max-width: 100%; height: auto; display: block; border-radius: var(--radius
     border-radius: 0;
     box-shadow: none;
   }
-  #menu a { text-align: left; }
+  #menu a { text-align: center; }
 
   .row { grid-template-columns: 1fr; gap: 0; }
   .row > .stack-top    { order: 0; }

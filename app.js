@@ -335,7 +335,7 @@ function buildSectionEl(s, inRow) {
       if (marker) list.style.setProperty("--marker", marker);
       for (const it of items) {
         const li = document.createElement("li");
-        appendRich(li, it);
+        appendRich(li, it, text);
         if (text) li.style.color = text;
         list.appendChild(li);
       }
@@ -350,7 +350,7 @@ function buildSectionEl(s, inRow) {
         if (block.kw === "NOTE") node.className = "note";
         if (cls) node.classList.add(cls);
         if (color) node.style.color = color;
-        appendBr(node, para);
+        appendBr(node, para, color);
         inner.appendChild(node);
       }
     }
@@ -373,16 +373,16 @@ function paragraphs(lines) {
   if (cur.length) out.push(cur);
   return out;
 }
-function appendBr(el, para) {
+function appendBr(el, para, color) {
   para.forEach((ln, idx) => {
     if (idx) el.appendChild(document.createElement("br"));
-    appendRich(el, ln);
+    appendRich(el, ln, color);
   });
 }
 
 // Insert text that may contain link tokens: {"Display", local(NavName)} or {"Display", url(https://...)}
 // A backslash escapes the next character (\{ \} \\ \" ...), so braces/quotes can appear literally.
-function appendRich(el, text) {
+function appendRich(el, text, color) {
   let buf = "";
   const flush = () => { if (buf) { el.appendChild(document.createTextNode(buf)); buf = ""; } };
   let i = 0;
@@ -393,7 +393,7 @@ function appendRich(el, text) {
       i += i + 1 < text.length ? 2 : 1;
     } else if (ch === "{") {
       const link = parseLink(text, i);
-      if (link) { flush(); appendLink(el, link); i = link.end; }
+      if (link) { flush(); appendLink(el, link, color); i = link.end; }
       else { buf += "{"; i++; }
     } else {
       buf += ch; i++;
@@ -438,7 +438,7 @@ function parseLink(text, start) {
   return { display, type, target: target.trim(), end: i + 1 };
 }
 
-function appendLink(el, link) {
+function appendLink(el, link, color) {
   let a = null;
   if (link.type === "local") {
     const id = LINK_TARGETS.get(link.target.toLowerCase());
@@ -452,8 +452,33 @@ function appendLink(el, link) {
   } else {
     console.warn(`[OfflineOffsite] blocked link URL “${link.target}”, shown as text`);
   }
-  if (a) { a.textContent = link.display; el.appendChild(a); }
-  else el.appendChild(document.createTextNode(link.display));
+  if (a) {
+    a.textContent = link.display;
+    const shade = shadeForLink(color);
+    if (shade) a.style.color = shade;
+    el.appendChild(a);
+  } else {
+    el.appendChild(document.createTextNode(link.display));
+  }
+}
+
+// A link shade: same hue as the surrounding text, nudged darker if the text is light, lighter if dark.
+function shadeForLink(color) {
+  const rgb = hexToRgb(color);
+  if (!rgb) return null;
+  const lum = (0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b) / 255;
+  const amt = 0.24;
+  const f = lum > 0.5 ? (c) => c * (1 - amt) : (c) => c + (255 - c) * amt;
+  const to2 = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+  return "#" + to2(f(rgb.r)) + to2(f(rgb.g)) + to2(f(rgb.b));
+}
+function hexToRgb(hex) {
+  if (typeof hex !== "string") return null;
+  let h = hex.trim().replace(/^#/, "");
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (h.length !== 6 && h.length !== 8) return null;
+  const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
+  return [r, g, b].some(Number.isNaN) ? null : { r, g, b };
 }
 
 // Navigation
