@@ -10,12 +10,26 @@ const CONFIG = {
   USE_MANIFEST_FALLBACK: true
 };
 
-const KEYWORDS = { HEADER: "h2", SUBHEADER: "h3", BODY: "p", NOTE: "note", IMAGE: "img" };
+const BLOCKS = {
+  HEADER: { tag: "h2", defAlign: "c" },
+  SUBHEADER: { tag: "h3", defAlign: "c" },
+  BODY: { tag: "p", defAlign: "j" },
+  NOTE: { tag: "p", defAlign: "c" },
+  IMAGE: { tag: "img", defAlign: null },
+  BL: { tag: "ul", defAlign: "l" },
+  NL: { tag: "ol", defAlign: "l" }
+};
+const KW_SET = new Set([...Object.keys(BLOCKS), "BACKGROUND", "DEFAULT"]);
 const POS_RE = /^([LR]?)(\d{2,})$/;
 const DIR_RE = /^(Primary|Secondary|Hide)(?:\(([^)]*)\))?(?:\s+(Top|Bottom))?$/;
+const KW_RE = /^([A-Z]+)(?:\(([CJLR])\))?$/;
+const COLOR_RE = /^#[0-9A-Fa-f]{3,8}$/;
+const PCT_RE = /^(\d{1,3})%$/;
 const IMG_NAME_RE = /^[A-Za-z0-9._-]+\.(png|jpe?g|gif|webp|svg|avif)$/i;
 const NARROW = 760;
+const FALLBACK_BG = "#0d1117";
 
+let DEFAULTS = {};
 let primaryItems = [];
 let secondaryItems = [];
 
@@ -37,6 +51,8 @@ async function init() {
       showStatus("Content files were found but none could be read. Check the section format in the “" + CONFIG.PAGES_DIR + "” folder.");
       return;
     }
+    for (const s of parsed) if (s.defaults) DEFAULTS = Object.assign(DEFAULTS, s.defaults);
+    if (DEFAULTS.background) document.body.style.background = DEFAULTS.background;
     render(parsed);
     buildNav(parsed);
     observeFirstSection();
@@ -47,8 +63,7 @@ async function init() {
 }
 
 function setChrome() {
-  const brand = document.getElementById("brand");
-  brand.textContent = CONFIG.SITE_NAME;
+  document.getElementById("brand").textContent = CONFIG.SITE_NAME;
   const pdf = document.getElementById("pdfBtn");
   pdf.textContent = CONFIG.PDF_LABEL;
   pdf.setAttribute("href", CONFIG.PDF_FILE);
@@ -105,10 +120,9 @@ function parseSection(filename, raw) {
   if (i >= lines.length) { console.warn(`[OfflineOffsite] ${filename}: empty file, skipped`); return null; }
 
   const directive = lines[i].trim();
-  const sp = directive.indexOf(" ");
-  const posTok = sp === -1 ? directive : directive.slice(0, sp);
-  const rest = sp === -1 ? "" : directive.slice(sp + 1).trim();
-
+  const dsp = directive.indexOf(" ");
+  const posTok = dsp === -1 ? directive : directive.slice(0, dsp);
+  const rest = dsp === -1 ? "" : directive.slice(dsp + 1).trim();
   const pm = posTok.match(POS_RE);
   if (!pm) { console.warn(`[OfflineOffsite] ${filename}: bad position token “${posTok}”, skipped`); return null; }
   const dm = rest.match(DIR_RE);
@@ -123,51 +137,155 @@ function parseSection(filename, raw) {
 
   const blocks = [];
   let firstHeader = null;
+  let sectionBg = null;
+  let sectionDefaults = null;
+  let current = null;
+
+  const finalize = () => {
+    if (!current) return;
+    while (current.lines.length && current.lines[0].trim() === "") current.lines.shift();
+    while (current.lines.length && current.lines[current.lines.length - 1].trim() === "") current.lines.pop();
+    if (current.kw === "HEADER" && firstHeader === null && current.lines.length) firstHeader = current.lines[0].trim();
+    blocks.push(current);
+    current = null;
+  };
+
   for (let j = i + 1; j < lines.length; j++) {
-    const t = lines[j].trim();
-    if (t === "") continue;
-    const s = t.indexOf(" ");
-    const kw = (s === -1 ? t : t.slice(0, s)).toUpperCase();
-    const val = (s === -1 ? "" : t.slice(s + 1)).trim();
-    const tag = KEYWORDS[kw];
-    if (!tag) { console.warn(`[OfflineOffsite] ${filename}:${j + 1}: unknown keyword “${kw}”, skipped`); continue; }
-    if (tag === "h2" && firstHeader === null) firstHeader = val;
-    blocks.push({ tag, val });
+    const rawLine = lines[j];
+    const trimmed = rawLine.trim();
+    const tokens = trimmed === "" ? [] : trimmed.split(/\s+/);
+    const m0 = tokens.length ? tokens[0].match(KW_RE) : null;
+    const base = m0 && KW_SET.has(m0[1]) ? m0[1] : null;
+
+    if (base) {
+      finalize();
+      const align = m0[2] ? m0[2].toLowerCase() : null;
+      const args = tokens.slice(1);
+      if (base === "DEFAULT") {
+        sectionDefaults = parseDefaults(args, filename);
+      } else if (base === "BACKGROUND") {
+        const bg = parseBackground(args, filename);
+        if (bg) sectionBg = bg;
+      } else if (base === "IMAGE") {
+        current = { kw: "IMAGE", align: null, lines: [] };
+      } else if (base === "BL" || base === "NL") {
+        const cols = args.filter((t) => COLOR_RE.test(t));
+        current = { kw: base, align, markerColor: cols[0] || null, textColor: cols[1] || cols[0] || null, lines: [] };
+      } else {
+        current = { kw: base, align, color: args.find((t) => COLOR_RE.test(t)) || null, lines: [] };
+      }
+    } else if (current) {
+      current.lines.push(rawLine.replace(/\s+$/, ""));
+    } else if (trimmed !== "") {
+      console.warn(`[OfflineOffsite] ${filename}:${j + 1}: content before first keyword, ignored`);
+    }
   }
+  finalize();
 
   return {
     filename, orderNum, column, visibility, stack,
+    bg: sectionBg, defaults: sectionDefaults, blocks,
     id: slug(stripOrderPrefix(filename)),
-    label: navLabel || firstHeader || titleFromFilename(filename),
-    blocks
+    label: navLabel || firstHeader || titleFromFilename(filename)
   };
 }
 
-// Render sections
+function parseDefaults(tokens, filename) {
+  const d = {};
+  const single = { BACKGROUND: "background", HEADER: "header", SUBHEADER: "subheader", BODY: "body", NOTE: "note" };
+  let i = 0;
+  while (i < tokens.length) {
+    const key = tokens[i++];
+    if (key in single) {
+      const c = tokens[i];
+      if (c && COLOR_RE.test(c)) { d[single[key]] = c; i++; }
+      else console.warn(`[OfflineOffsite] ${filename}: DEFAULT ${key} missing color`);
+    } else if (key === "BL" || key === "NL") {
+      const b = key.toLowerCase();
+      const c1 = tokens[i];
+      if (c1 && COLOR_RE.test(c1)) {
+        i++;
+        let c2 = tokens[i];
+        if (c2 && COLOR_RE.test(c2)) i++; else c2 = c1;
+        d[b + "Marker"] = c1; d[b + "Text"] = c2;
+      } else console.warn(`[OfflineOffsite] ${filename}: DEFAULT ${key} missing color`);
+    } else {
+      console.warn(`[OfflineOffsite] ${filename}: DEFAULT unknown key “${key}”`);
+    }
+  }
+  return d;
+}
+
+function parseBackground(args, filename) {
+  if (args[0] === "IMAGE") {
+    const f = args[1];
+    if (f && IMG_NAME_RE.test(f)) return { bgType: "image", bg: f, percent: 0 };
+    console.warn(`[OfflineOffsite] ${filename}: BACKGROUND IMAGE invalid/missing filename`);
+    return null;
+  }
+  const c = args[0];
+  if (c && COLOR_RE.test(c)) {
+    let pct = 0;
+    if (args[1]) { const pm = args[1].match(PCT_RE); if (pm) pct = Math.min(100, parseInt(pm[1], 10)); }
+    return { bgType: "color", bg: c, percent: pct };
+  }
+  console.warn(`[OfflineOffsite] ${filename}: BACKGROUND invalid color`);
+  return null;
+}
+
+// Render
 function render(sections) {
   sections.sort(compareSections);
   const main = document.getElementById("content");
   main.textContent = "";
   const usedIds = new Set();
+  const fallback = DEFAULTS.background || null;
 
+  const bands = [];
   let k = 0;
   while (k < sections.length) {
     const s = sections[k];
-    if (s.column === "") {
-      main.appendChild(buildSectionEl(s, usedIds, false));
-      k++;
-    } else {
+    if (s.column === "") { bands.push({ kind: "full", secs: [s] }); k++; }
+    else {
       const group = [];
-      while (k < sections.length && sections[k].column !== "" && sections[k].orderNum === s.orderNum) {
-        group.push(sections[k]); k++;
-      }
-      const row = document.createElement("div");
-      row.className = "row";
-      group.sort((a, b) => rank(a.column) - rank(b.column));
-      for (const g of group) row.appendChild(buildSectionEl(g, usedIds, true));
-      main.appendChild(row);
+      while (k < sections.length && sections[k].column !== "" && sections[k].orderNum === s.orderNum) { group.push(sections[k]); k++; }
+      bands.push({ kind: "row", secs: group });
     }
   }
+
+  for (const b of bands) {
+    b.bg = b.kind === "full" ? b.secs[0].bg : (b.secs.find((x) => x.stack === "Top") || b.secs[0]).bg;
+    b.color = b.bg && b.bg.bgType === "color" ? b.bg.bg : fallback;
+  }
+
+  bands.forEach((b, idx) => {
+    const bandEl = document.createElement("div");
+    bandEl.className = "band";
+    if (b.bg && b.bg.bgType === "image") {
+      bandEl.style.background = `${fallback || FALLBACK_BG} center/cover no-repeat url("${CONFIG.PAGES_DIR}/${b.bg.bg}")`;
+    } else if (b.color) {
+      const pct = b.bg && b.bg.bgType === "color" ? b.bg.percent : 0;
+      if (pct > 0) {
+        const next = bands[idx + 1] ? bands[idx + 1].color : fallback;
+        bandEl.style.background = `linear-gradient(to bottom, ${b.color} 0%, ${b.color} ${100 - pct}%, ${next || b.color} 100%)`;
+      } else {
+        bandEl.style.background = b.color;
+      }
+    }
+
+    const innerWrap = document.createElement("div");
+    innerWrap.className = "band-inner";
+    if (b.kind === "full") {
+      innerWrap.appendChild(buildSectionEl(b.secs[0], usedIds, false));
+    } else {
+      const row = document.createElement("div");
+      row.className = "row";
+      for (const g of b.secs.slice().sort((a, c) => rank(a.column) - rank(c.column))) row.appendChild(buildSectionEl(g, usedIds, true));
+      innerWrap.appendChild(row);
+    }
+    bandEl.appendChild(innerWrap);
+    main.appendChild(bandEl);
+  });
 }
 
 function buildSectionEl(s, usedIds, inRow) {
@@ -175,31 +293,83 @@ function buildSectionEl(s, usedIds, inRow) {
   el.className = "section";
   if (inRow) el.classList.add(s.stack === "Bottom" ? "stack-bottom" : "stack-top");
   el.id = uniqueId(s.id, usedIds);
-
   const inner = inRow ? document.createElement("div") : el;
   if (inRow) { inner.className = "body-card"; el.appendChild(inner); }
 
-  for (const b of s.blocks) {
-    if (b.tag === "img") {
-      if (!IMG_NAME_RE.test(b.val)) { console.warn(`[OfflineOffsite] ${s.filename}: unsafe/invalid image name “${b.val}”, skipped`); continue; }
+  for (const block of s.blocks) {
+    if (block.kw === "IMAGE") {
+      const name = (block.lines.find((l) => l.trim() !== "") || "").trim();
+      if (!name) { console.warn(`[OfflineOffsite] ${s.filename}: IMAGE with no filename, skipped`); continue; }
+      if (!IMG_NAME_RE.test(name)) { console.warn(`[OfflineOffsite] ${s.filename}: unsafe/invalid image name “${name}”, skipped`); continue; }
       const img = document.createElement("img");
-      img.src = `${CONFIG.PAGES_DIR}/${b.val}`;
+      img.src = `${CONFIG.PAGES_DIR}/${name}`;
       img.loading = "lazy";
       img.alt = "";
       img.addEventListener("error", () => img.remove());
       inner.appendChild(img);
-    } else if (b.tag === "note") {
-      const p = document.createElement("p");
-      p.className = "note";
-      p.textContent = b.val;
-      inner.appendChild(p);
+    } else if (block.kw === "BL" || block.kw === "NL") {
+      const items = [];
+      for (const ln of block.lines) {
+        const t = ln.trim();
+        if (t === "") continue;
+        if (t.startsWith("-")) items.push(t.replace(/^-\s*/, ""));
+        else if (items.length) items[items.length - 1] += " " + t;
+        else console.warn(`[OfflineOffsite] ${s.filename}: list line before first “- ” item, ignored`);
+      }
+      if (!items.length) { console.warn(`[OfflineOffsite] ${s.filename}: empty list, skipped`); continue; }
+      const wrap = document.createElement("div");
+      wrap.className = "list-wrap";
+      const cls = alignClass(block); if (cls) wrap.classList.add(cls);
+      const list = document.createElement(block.kw === "BL" ? "ul" : "ol");
+      const key = block.kw.toLowerCase();
+      const marker = block.markerColor || DEFAULTS[key + "Marker"];
+      const text = block.textColor || DEFAULTS[key + "Text"];
+      if (marker) list.style.setProperty("--marker", marker);
+      for (const it of items) {
+        const li = document.createElement("li");
+        li.textContent = it;
+        if (text) li.style.color = text;
+        list.appendChild(li);
+      }
+      wrap.appendChild(list);
+      inner.appendChild(wrap);
     } else {
-      const node = document.createElement(b.tag);
-      node.textContent = b.val;
-      inner.appendChild(node);
+      const tag = BLOCKS[block.kw].tag;
+      const cls = alignClass(block);
+      const color = block.color || DEFAULTS[block.kw.toLowerCase()];
+      for (const para of paragraphs(block.lines)) {
+        const node = document.createElement(tag);
+        if (block.kw === "NOTE") node.className = "note";
+        if (cls) node.classList.add(cls);
+        if (color) node.style.color = color;
+        appendBr(node, para);
+        inner.appendChild(node);
+      }
     }
   }
   return el;
+}
+
+function alignClass(block) {
+  let a = block.align || BLOCKS[block.kw].defAlign;
+  if (!a) return null;
+  if ((block.kw === "BL" || block.kw === "NL") && a === "j") a = "l";
+  return "align-" + a;
+}
+function paragraphs(lines) {
+  const out = [], cur = [];
+  for (const ln of lines) {
+    if (ln.trim() === "") { if (cur.length) { out.push(cur.slice()); cur.length = 0; } }
+    else cur.push(ln);
+  }
+  if (cur.length) out.push(cur);
+  return out;
+}
+function appendBr(el, para) {
+  para.forEach((ln, idx) => {
+    if (idx) el.appendChild(document.createElement("br"));
+    el.appendChild(document.createTextNode(ln));
+  });
 }
 
 // Navigation
@@ -246,14 +416,18 @@ function layoutNav() {
 }
 
 function wireHamburger() {
-  const btn = document.getElementById("hamburger");
-  btn.addEventListener("click", () => {
-    const open = document.getElementById("menu").classList.toggle("open");
-    btn.setAttribute("aria-expanded", String(open));
-  });
+  document.getElementById("hamburger").addEventListener("click", toggleMenu);
+  document.getElementById("backdrop").addEventListener("click", closeMenu);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
+}
+function toggleMenu() {
+  const open = document.getElementById("menu").classList.toggle("open");
+  document.getElementById("backdrop").classList.toggle("show", open);
+  document.getElementById("hamburger").setAttribute("aria-expanded", String(open));
 }
 function closeMenu() {
   document.getElementById("menu").classList.remove("open");
+  document.getElementById("backdrop").classList.remove("show");
   document.getElementById("hamburger").setAttribute("aria-expanded", "false");
 }
 

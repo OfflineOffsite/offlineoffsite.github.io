@@ -1,7 +1,14 @@
 05 Primary(Pricing)
-HEADER Pricing
-SUBHEADER Simple, flat, cash by mail.
-BODY Standard offsite storage: [PLACEHOLDER] per device, per term.
-BODY Digital Time Capsule (extended terms): [PLACEHOLDER].
-BODY Return shipping: covered by the prepaid USPS label you include with your parcel.
-NOTE All prices are in US dollars, cash only. Rates are subject to change; the amount you enclose must match the current rate for your chosen term.
+BACKGROUND #0E2352 12%
+HEADER
+Pricing
+SUBHEADER
+Simple, flat, cash by mail.
+BODY
+Standard offsite storage: [PLACEHOLDER] per device, per term.
+BODY
+Digital Time Capsule (extended terms): [PLACEHOLDER].
+BODY
+Return shipping: covered by the prepaid USPS label you include with your parcel.
+NOTE
+All prices are in US dollars, cash only. Rates are subject to change; the amount you enclose must match the current rate for your chosen term.

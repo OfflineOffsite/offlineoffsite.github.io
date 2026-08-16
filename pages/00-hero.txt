@@ -1,5 +1,11 @@
 00 Hide
-HEADER Offline. Offsite. Anonymous.
-SUBHEADER Long-term data backup by mail — no accounts, no tracking, no cloud.
-BODY OfflineOffsite stores your data the safest way there is: physically, and nowhere near the internet. You mail us a drive, we keep it offline and offsite, and we mail it back when you ask.
-BODY We never create an account for you, never ask for your name, and never collect personal information. Payment is cash, by mail.
+DEFAULT BACKGROUND #0B1D47 HEADER #B4C0DE SUBHEADER #ADB4C4 BODY #9FA1A6 NOTE #7E8AA6 BL #E6E9F0 #9FA1A6 NL #E6E9F0 #9FA1A6
+BACKGROUND #0B1D47 12%
+HEADER
+Offline. Offsite. Anonymous.
+SUBHEADER
+Long-term data backup by mail — no accounts, no tracking, no cloud.
+BODY(C)
+OfflineOffsite stores your data the safest way there is: physically, and nowhere near the internet. You mail us a drive, we keep it offline and offsite, and we mail it back when you ask.
+BODY(C)
+We never create an account for you, never ask for your name, and never collect personal information. Payment is cash, by mail.

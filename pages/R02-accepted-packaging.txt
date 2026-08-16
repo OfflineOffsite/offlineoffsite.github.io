@@ -1,6 +1,9 @@
 R02 Secondary(Packaging) Bottom
-HEADER Accepted Packaging
-BODY USPS Small Priority Mail Flat-Rate Box — just large enough for a full-size 3.5-inch hard drive.
-BODY USPS Priority Mail Flat-Rate Envelopes — all sizes accepted.
-BODY Pad your device well. We recommend anti-static wrap plus bubble wrap or foam so it survives transit.
-NOTE We only accept the USPS Flat-Rate packaging listed above. Parcels sent in other packaging may be refused. [PLACEHOLDER: confirm any exact size or weight limits]
+HEADER
+Accepted Packaging
+BL
+- USPS Small Priority Mail Flat-Rate Box — just large enough for a full-size 3.5-inch hard drive.
+- USPS Priority Mail Flat-Rate Envelopes — all sizes accepted.
+- Pad your device well. We recommend anti-static wrap plus bubble wrap or foam so it survives transit.
+NOTE
+We only accept the USPS Flat-Rate packaging listed above. Parcels sent in other packaging may be refused. [PLACEHOLDER: confirm any exact size or weight limits]

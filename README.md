@@ -42,33 +42,60 @@ R04 Secondary(Packaging) Bottom → 4th row, right column, in the ☰ menu, show
 
 ### The rest of the file
 
-Every following line starts with a keyword that sets how it looks:
+> **Breaking change:** each keyword now goes **on its own line**, and the text follows **on the line(s) below it** — until the next keyword. (Old `KEYWORD text` one-liners no longer work.)
 
 | Keyword | Renders as |
 |---------|-----------|
-| `HEADER `   | large section heading (also becomes the section's nav-bar label) |
-| `SUBHEADER ` | smaller heading |
-| `BODY `     | a paragraph of normal text (use one `BODY` line per paragraph) |
-| `NOTE `     | small italic text, e.g. a caption under an image |
-| `IMAGE name.png` | an image — put the image file in the `pages/` folder and give its filename |
+| `HEADER`    | large section heading (its text also becomes the nav label if you didn't set one) |
+| `SUBHEADER` | smaller heading |
+| `BODY`      | normal paragraph text |
+| `NOTE`      | small italic text, e.g. an image caption |
+| `IMAGE`     | an image — the **filename goes on the next line**; put the image in `pages/` |
+| `BL`        | bulleted list — each item is a line starting with `-` |
+| `NL`        | numbered list — each item is a line starting with `-` |
+
+**Line breaks:** inside a block, every line break you type is kept; a blank line starts a new paragraph.
+
+**Alignment** — add a letter in parentheses after the keyword: `(C)` center, `(J)` justify, `(L)` left, `(R)` right. Example: `HEADER(C)`, `BODY(J)`. Defaults if you don't specify: headers, subheaders and notes are **centered**, body is **justified**, lists are **left**. `BL(C)`/`NL(C)` centers the whole list while keeping the bullets/numbers aligned.
+
+**Color** — add a `#hex` color after the keyword (and after any alignment): `HEADER(C) #E6E9F0`. Lists take **two** colors — bullet/number then text — `BL #E6E9F0 #9FA1A6` (give one to use it for both).
+
+**Section background** — a `BACKGROUND` line sets the whole section's background:
+- `BACKGROUND #0B1D47 8%` — a color; the `%` is the size of the gradient that fades it into the next section below.
+- `BACKGROUND IMAGE faq.png` — an image (centered, fills the width, cropped top/bottom). Put the image in `pages/`.
+- For a side-by-side `L`/`R` row, the **Top** side's background is used.
+
+**Site-wide defaults** — put one `DEFAULT` line in the `00` file to set the palette. Keys: `BACKGROUND`, `HEADER`, `SUBHEADER`, `BODY`, `NOTE` (one color each), and `BL`/`NL` (two colors: markers then text). Any per-block color overrides it. Example:
+```
+DEFAULT BACKGROUND #0B1D47 HEADER #B4C0DE SUBHEADER #ADB4C4 BODY #9FA1A6 BL #E6E9F0 #9FA1A6 NL #E6E9F0 #9FA1A6
+```
 
 Example section file:
 ```
 02 Primary(How It Works)
-HEADER How It Works
-SUBHEADER Entirely by mail
-BODY First, encrypt your drive.
-BODY Then print the form and mail everything to us.
-IMAGE flatrate-box.jpg
-NOTE A USPS Small Flat-Rate Box.
+BACKGROUND #0E2352 10%
+HEADER
+How It Works
+BODY
+First, encrypt your drive.
+Then print the form and mail everything to us.
+BL
+- Your device
+- The printed form
+- Cash and a USPS return label
+IMAGE
+flatrate-box.jpg
+NOTE
+A USPS Small Flat-Rate Box.
 ```
 
 ### Tips
-- The **nav label** is the `(Nav name)` on the first line, or the section's first `HEADER` if you omit it. Keep it short so the navbar stays on one line.
-- Use a **different two-digit number** for each section (or L/R pair) so the order is never ambiguous.
-- Text is shown exactly as typed — there is no Markdown or HTML formatting, which also keeps it safe.
-- To **remove** a section, delete its `.txt` file. To **add** one, create a new `.txt` file with a first line as above.
-- Images: commit them into `pages/` and reference them by filename with `IMAGE`. Keep them reasonably small so the page stays fast.
+- Keywords and the letters `C/J/L/R` are **uppercase and case-sensitive**.
+- The **nav label** is the `(Nav name)` on the first line, or the section's first `HEADER` if omitted. Keep it short.
+- Use a **different two-digit number** for each section (or L/R pair) so the order is unambiguous.
+- Text is inserted exactly as typed (no Markdown/HTML), which keeps it safe.
+- To **remove** a section delete its `.txt`; to **add** one, create a new `.txt` with a first line as above.
+- Keep images reasonably small so the page stays fast.
 
 ### `pages/manifest.json` (optional)
 This is a simple backup list of the section filenames. The site normally discovers files

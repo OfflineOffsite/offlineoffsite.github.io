@@ -1,6 +1,11 @@
 R03 Secondary(Encryption) Bottom
-HEADER Encryption & Responsibility
-BODY Encrypt your drive and files before shipping. Full-disk encryption is strongly recommended.
-BODY OfflineOffsite stores your media exactly as received. We never power on, access, inspect, or copy your data.
-BODY Because your device leaves your hands, you accept all risk to your data. OfflineOffsite is not responsible for data integrity, loss, corruption, hardware failure, or damage in transit.
-NOTE Keep your own separate backup. Offsite storage protects against local disaster; it is not a substitute for keeping more than one copy.
+HEADER
+Encryption & Responsibility
+BODY
+Encrypt your drive and files before shipping. Full-disk encryption is strongly recommended.
+BODY
+OfflineOffsite stores your media exactly as received. We never power on, access, inspect, or copy your data.
+BODY
+Because your device leaves your hands, you accept all risk to your data. OfflineOffsite is not responsible for data integrity, loss, corruption, hardware failure, or damage in transit.
+NOTE
+Keep your own separate backup. Offsite storage protects against local disaster; it is not a substitute for keeping more than one copy.

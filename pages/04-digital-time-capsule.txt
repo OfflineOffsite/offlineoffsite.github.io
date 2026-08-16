@@ -1,6 +1,12 @@
 04 Secondary(Time Capsule)
-HEADER Digital Time Capsule
-SUBHEADER Seal it away for the long term.
-BODY Our Digital Time Capsule service stores your drive for a fixed, extended period — ideal for records, keepsakes, and long-horizon backups you do not need to touch.
-BODY Choose your term when you mail your device and prepay in cash. We hold your sealed drive offline and offsite until the term ends, then return it with your USPS label.
-NOTE Digital Time Capsule terms and rates: [PLACEHOLDER].
+BACKGROUND #0B1D47 12%
+HEADER
+Digital Time Capsule
+SUBHEADER
+Seal it away for the long term.
+BODY
+Our Digital Time Capsule service stores your drive for a fixed, extended period — ideal for records, keepsakes, and long-horizon backups you do not need to touch.
+BODY
+Choose your term when you mail your device and prepay in cash. We hold your sealed drive offline and offsite until the term ends, then return it with your USPS label.
+NOTE
+Digital Time Capsule terms and rates: [PLACEHOLDER].

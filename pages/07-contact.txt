@@ -1,6 +1,12 @@
 07 Primary(Contact)
-HEADER Contact
-BODY Mail your parcel to:
-BODY [PLACEHOLDER: OfflineOffsite mailing address — P.O. Box, City, State, ZIP]
-BODY Include your device, the printed and completed form, cash payment, and your prepaid USPS return-address label.
-NOTE We have no email, phone, or online account, by design. All correspondence is by mail, and we collect no personal data.
+BACKGROUND #0E2352 12%
+HEADER
+Contact
+BODY
+Mail your parcel to:
+BODY
+[PLACEHOLDER: OfflineOffsite mailing address — P.O. Box, City, State, ZIP]
+BODY
+Include your device, the printed and completed form, cash payment, and your prepaid USPS return-address label.
+NOTE
+We have no email, phone, or online account, by design. All correspondence is by mail, and we collect no personal data.
