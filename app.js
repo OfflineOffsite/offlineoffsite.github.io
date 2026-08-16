@@ -1,27 +1,23 @@
-/*
- * OfflineOffsite site engine.
- * All business copy lives in /pages/*.txt — NONE in this file.
- * This file only: reads the pages folder, parses the section format, renders,
- * and wires the nav / hamburger / back-to-top. Edit CONFIG below if the repo
- * name, branch, or brand text ever change.
- */
-
-// ======================= CONFIG =======================
+// CONFIG
 const CONFIG = {
-  OWNER: "OfflineOffsite",              // GitHub username/org
-  REPO: "OfflineOffsite.github.io",     // repository name
-  BRANCH: "main",                       // branch serving GitHub Pages
-  PAGES_DIR: "pages",                   // folder holding the .txt sections + images
-  PDF_FILE: "OfflineOffsite-Form.pdf",  // static PDF the Download button links to
-  SITE_NAME: "OfflineOffsite",          // nav brand (site chrome, not a content section)
-  PDF_LABEL: "Download PDF",            // nav button label
-  USE_MANIFEST_FALLBACK: true           // fall back to pages/manifest.json if the API is unavailable
+  OWNER: "OfflineOffsite",
+  REPO: "OfflineOffsite.github.io",
+  BRANCH: "main",
+  PAGES_DIR: "pages",
+  PDF_FILE: "OfflineOffsite-Form.pdf",
+  SITE_NAME: "OfflineOffsite",
+  PDF_LABEL: "Download PDF",
+  USE_MANIFEST_FALLBACK: true
 };
-// ======================================================
 
 const KEYWORDS = { HEADER: "h2", SUBHEADER: "h3", BODY: "p", NOTE: "note", IMAGE: "img" };
 const POS_RE = /^([LR]?)(\d{2,})$/;
+const DIR_RE = /^(Primary|Secondary|Hide)(?:\(([^)]*)\))?(?:\s+(Top|Bottom))?$/;
 const IMG_NAME_RE = /^[A-Za-z0-9._-]+\.(png|jpe?g|gif|webp|svg|avif)$/i;
+const NARROW = 760;
+
+let primaryItems = [];
+let secondaryItems = [];
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -50,34 +46,27 @@ async function init() {
   }
 }
 
-/* ---------- Site chrome (nav brand + PDF button) ---------- */
 function setChrome() {
   const brand = document.getElementById("brand");
   brand.textContent = CONFIG.SITE_NAME;
-
   const pdf = document.getElementById("pdfBtn");
   pdf.textContent = CONFIG.PDF_LABEL;
-  pdf.setAttribute("href", CONFIG.PDF_FILE); // relative → works on root or project hosting
+  pdf.setAttribute("href", CONFIG.PDF_FILE);
 }
 
-/* ---------- Discover the .txt files ---------- */
+// Discover the .txt files
 async function listTxtFiles() {
   if (CONFIG.OWNER.startsWith("REPLACE") || CONFIG.REPO.startsWith("REPLACE")) {
     showStatus("Site not configured yet: set OWNER and REPO in app.js.");
     return [];
   }
-
   const api = `https://api.github.com/repos/${CONFIG.OWNER}/${CONFIG.REPO}/contents/${CONFIG.PAGES_DIR}?ref=${CONFIG.BRANCH}`;
   try {
     const res = await fetch(api, { headers: { Accept: "application/vnd.github+json" } });
-    if (res.status === 403 && res.headers.get("X-RateLimit-Remaining") === "0") {
-      throw new Error("rate-limited");
-    }
+    if (res.status === 403 && res.headers.get("X-RateLimit-Remaining") === "0") throw new Error("rate-limited");
     if (!res.ok) throw new Error("api " + res.status);
     const entries = await res.json();
-    return entries
-      .filter((e) => e.type === "file" && /\.txt$/i.test(e.name))
-      .map((e) => e.name);
+    return entries.filter((e) => e.type === "file" && /\.txt$/i.test(e.name)).map((e) => e.name);
   } catch (err) {
     console.warn("[OfflineOffsite] API listing failed, trying manifest fallback:", err);
     if (CONFIG.USE_MANIFEST_FALLBACK) {
@@ -98,7 +87,6 @@ async function tryManifest() {
   return null;
 }
 
-/* ---------- Fetch + parse one section ---------- */
 async function loadSection(name) {
   try {
     const res = await fetch(`${CONFIG.PAGES_DIR}/${encodeURIComponent(name)}`, { cache: "no-cache" });
@@ -116,18 +104,21 @@ function parseSection(filename, raw) {
   while (i < lines.length && lines[i].trim() === "") i++;
   if (i >= lines.length) { console.warn(`[OfflineOffsite] ${filename}: empty file, skipped`); return null; }
 
-  const tokens = lines[i].trim().split(/\s+/);
-  const m = tokens[0] && tokens[0].match(POS_RE);
-  if (!m) { console.warn(`[OfflineOffsite] ${filename}: bad position token “${tokens[0]}”, skipped`); return null; }
+  const directive = lines[i].trim();
+  const sp = directive.indexOf(" ");
+  const posTok = sp === -1 ? directive : directive.slice(0, sp);
+  const rest = sp === -1 ? "" : directive.slice(sp + 1).trim();
 
-  const column = m[1];                 // '', 'L', 'R'
-  const orderNum = parseInt(m[2], 10); // sort key
-  const kind = tokens[1];              // Primary | Secondary
-  if (kind !== "Primary" && kind !== "Secondary") {
-    console.warn(`[OfflineOffsite] ${filename}: token 2 must be Primary or Secondary, skipped`);
-    return null;
-  }
-  let stack = tokens[2];
+  const pm = posTok.match(POS_RE);
+  if (!pm) { console.warn(`[OfflineOffsite] ${filename}: bad position token “${posTok}”, skipped`); return null; }
+  const dm = rest.match(DIR_RE);
+  if (!dm) { console.warn(`[OfflineOffsite] ${filename}: bad directive “${rest}”, skipped`); return null; }
+
+  const column = pm[1];
+  const orderNum = parseInt(pm[2], 10);
+  const visibility = dm[1];
+  const navLabel = dm[2] != null ? dm[2].trim() : null;
+  let stack = dm[3];
   if (stack !== "Top" && stack !== "Bottom") stack = column === "R" ? "Bottom" : "Top";
 
   const blocks = [];
@@ -135,9 +126,9 @@ function parseSection(filename, raw) {
   for (let j = i + 1; j < lines.length; j++) {
     const t = lines[j].trim();
     if (t === "") continue;
-    const sp = t.indexOf(" ");
-    const kw = (sp === -1 ? t : t.slice(0, sp)).toUpperCase();
-    const val = (sp === -1 ? "" : t.slice(sp + 1)).trim();
+    const s = t.indexOf(" ");
+    const kw = (s === -1 ? t : t.slice(0, s)).toUpperCase();
+    const val = (s === -1 ? "" : t.slice(s + 1)).trim();
     const tag = KEYWORDS[kw];
     if (!tag) { console.warn(`[OfflineOffsite] ${filename}:${j + 1}: unknown keyword “${kw}”, skipped`); continue; }
     if (tag === "h2" && firstHeader === null) firstHeader = val;
@@ -145,18 +136,14 @@ function parseSection(filename, raw) {
   }
 
   return {
-    filename,
-    orderNum,
-    column,
-    kind,
-    stack,
+    filename, orderNum, column, visibility, stack,
     id: slug(stripOrderPrefix(filename)),
-    label: firstHeader || titleFromFilename(filename),
+    label: navLabel || firstHeader || titleFromFilename(filename),
     blocks
   };
 }
 
-/* ---------- Render ---------- */
+// Render sections
 function render(sections) {
   sections.sort(compareSections);
   const main = document.getElementById("content");
@@ -170,14 +157,12 @@ function render(sections) {
       main.appendChild(buildSectionEl(s, usedIds, false));
       k++;
     } else {
-      // Gather L/R sharing this orderNum into one row.
       const group = [];
       while (k < sections.length && sections[k].column !== "" && sections[k].orderNum === s.orderNum) {
         group.push(sections[k]); k++;
       }
       const row = document.createElement("div");
       row.className = "row";
-      // Keep desktop L-left / R-right by column, then append.
       group.sort((a, b) => rank(a.column) - rank(b.column));
       for (const g of group) row.appendChild(buildSectionEl(g, usedIds, true));
       main.appendChild(row);
@@ -209,7 +194,7 @@ function buildSectionEl(s, usedIds, inRow) {
       p.textContent = b.val;
       inner.appendChild(p);
     } else {
-      const node = document.createElement(b.tag); // h2 | h3 | p
+      const node = document.createElement(b.tag);
       node.textContent = b.val;
       inner.appendChild(node);
     }
@@ -217,67 +202,86 @@ function buildSectionEl(s, usedIds, inRow) {
   return el;
 }
 
-/* ---------- Nav ---------- */
+// Navigation
 function buildNav(sections) {
+  primaryItems = sections.filter((s) => s.visibility === "Primary").sort(compareSections);
+  secondaryItems = sections.filter((s) => s.visibility === "Secondary").sort(compareSections);
+
   const nav = document.getElementById("navlinks");
   nav.textContent = "";
-  sections
-    .filter((s) => s.kind === "Primary")
-    .sort(compareSections)
-    .forEach((s) => {
-      const a = document.createElement("a");
-      a.href = "#" + s.id;
-      a.textContent = s.label;
-      a.addEventListener("click", closeMenu);
-      nav.appendChild(a);
-    });
+  for (const s of primaryItems) nav.appendChild(navLink(s));
+
+  layoutNav();
+  window.addEventListener("resize", () => {
+    if (layoutNav._raf) cancelAnimationFrame(layoutNav._raf);
+    layoutNav._raf = requestAnimationFrame(layoutNav);
+  });
 }
 
-/* ---------- Hamburger ---------- */
+function navLink(s) {
+  const a = document.createElement("a");
+  a.href = "#" + s.id;
+  a.textContent = s.label;
+  a.addEventListener("click", closeMenu);
+  return a;
+}
+
+function layoutNav() {
+  const header = document.getElementById("nav");
+  const navlinks = document.getElementById("navlinks");
+  const menu = document.getElementById("menu");
+  const burger = document.getElementById("hamburger");
+
+  header.classList.remove("collapsed");
+  const overflow = navlinks.scrollWidth > navlinks.clientWidth + 1;
+  const collapsed = window.innerWidth <= NARROW || overflow;
+  header.classList.toggle("collapsed", collapsed);
+
+  menu.textContent = "";
+  if (collapsed) for (const s of primaryItems) menu.appendChild(navLink(s));
+  for (const s of secondaryItems) menu.appendChild(navLink(s));
+
+  burger.hidden = menu.children.length === 0;
+  if (burger.hidden) closeMenu();
+}
+
 function wireHamburger() {
   const btn = document.getElementById("hamburger");
   btn.addEventListener("click", () => {
-    const open = document.getElementById("navlinks").classList.toggle("open");
+    const open = document.getElementById("menu").classList.toggle("open");
     btn.setAttribute("aria-expanded", String(open));
   });
 }
 function closeMenu() {
-  document.getElementById("navlinks").classList.remove("open");
+  document.getElementById("menu").classList.remove("open");
   document.getElementById("hamburger").setAttribute("aria-expanded", "false");
 }
 
-/* ---------- Back to top ---------- */
+// Back to top
 function wireBackToTop() {
-  const btn = document.getElementById("toTop");
-  btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  document.getElementById("toTop").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
 }
 function observeFirstSection() {
   const btn = document.getElementById("toTop");
   const first = document.querySelector("#content .section");
   if (!first || !("IntersectionObserver" in window)) return;
   btn.hidden = false;
-  const io = new IntersectionObserver(
-    ([entry]) => {
-      const past = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-      btn.classList.toggle("show", past);
-    },
+  new IntersectionObserver(
+    ([entry]) => btn.classList.toggle("show", !entry.isIntersecting && entry.boundingClientRect.top < 0),
     { threshold: 0 }
-  );
-  io.observe(first);
+  ).observe(first);
 }
 
-/* ---------- Helpers ---------- */
+// Helpers
 function compareSections(a, b) {
   return a.orderNum - b.orderNum || rank(a.column) - rank(b.column) || a.filename.localeCompare(b.filename);
 }
 function rank(col) { return col === "" ? 0 : col === "L" ? 1 : 2; }
-
 function stripOrderPrefix(filename) {
   return filename.replace(/\.txt$/i, "").replace(/^[LR]?\d{2,}[-_ ]*/i, "");
 }
 function slug(str) {
-  const s = str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-  return s || "section";
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "section";
 }
 function uniqueId(base, used) {
   let id = base, n = 2;
@@ -286,10 +290,7 @@ function uniqueId(base, used) {
   return id;
 }
 function titleFromFilename(filename) {
-  return stripOrderPrefix(filename)
-    .replace(/[-_]+/g, " ")
-    .trim()
-    .replace(/\b\w/g, (c) => c.toUpperCase()) || "Section";
+  return stripOrderPrefix(filename).replace(/[-_]+/g, " ").trim().replace(/\b\w/g, (c) => c.toUpperCase()) || "Section";
 }
 function showStatus(msg) {
   const el = document.getElementById("status");

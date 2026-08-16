@@ -1,4 +1,4 @@
-L03 Primary Top
+L03 Secondary(Payment) Top
 HEADER Payment
 BODY Payment is cash, enclosed with your parcel. We do not accept cards, checks, money orders, or any online payment.
 BODY Cash keeps the service anonymous: there is no transaction record tying your data to your identity.

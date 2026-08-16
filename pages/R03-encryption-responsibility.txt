@@ -1,4 +1,4 @@
-R03 Primary Bottom
+R03 Secondary(Encryption) Bottom
 HEADER Encryption & Responsibility
 BODY Encrypt your drive and files before shipping. Full-disk encryption is strongly recommended.
 BODY OfflineOffsite stores your media exactly as received. We never power on, access, inspect, or copy your data.

@@ -1,4 +1,4 @@
-01 Primary
+01 Primary(How It Works)
 HEADER How It Works
 SUBHEADER Five steps, entirely by mail.
 BODY 1. Encrypt your drive. We strongly recommend encrypting your device and files before you ship them. Your data is your responsibility.

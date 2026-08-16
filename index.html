@@ -16,20 +16,20 @@
     <div class="nav-inner">
       <a id="brand" href="#top" aria-label="Home"></a>
 
-      <nav id="navlinks" aria-label="Sections"><!-- Primary section links injected by app.js --></nav>
+      <nav id="navlinks" aria-label="Sections"></nav>
 
       <div class="nav-right">
         <a id="pdfBtn" class="btn" download></a>
-        <button id="hamburger" class="hamburger" aria-label="Menu" aria-controls="navlinks" aria-expanded="false">
+        <button id="hamburger" class="hamburger" aria-label="Menu" aria-controls="menu" aria-expanded="false" hidden>
           <span></span><span></span><span></span>
         </button>
       </div>
     </div>
+    <nav id="menu" aria-label="More sections"></nav>
   </header>
 
   <span id="top"></span>
 
-  <!-- All sections are injected here from /pages/*.txt at load time. No copy lives in this file. -->
   <main id="content"></main>
 
   <div id="status" class="status" role="status" aria-live="polite" hidden></div>

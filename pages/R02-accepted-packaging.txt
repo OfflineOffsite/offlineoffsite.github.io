@@ -1,4 +1,4 @@
-R02 Primary Bottom
+R02 Secondary(Packaging) Bottom
 HEADER Accepted Packaging
 BODY USPS Small Priority Mail Flat-Rate Box — just large enough for a full-size 3.5-inch hard drive.
 BODY USPS Priority Mail Flat-Rate Envelopes — all sizes accepted.

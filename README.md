@@ -17,21 +17,27 @@ every time it loads and shows the sections in the order you choose.
 The first line tells the site **where** the section goes:
 
 ```
-<position> <Primary|Secondary> [Top|Bottom]
+<position> <Primary|Secondary|Hide>[(Nav name)] [Top|Bottom]
 ```
 
 - **position** — controls order and layout:
   - `NN` — a normal full-width section (e.g. `01`, `05`). `NN` is a two-digit number; **lower numbers appear higher up the page.**
   - `LNN` / `RNN` — a **side-by-side** pair. `L05` is the left column and `R05` is the right column of the same row (same number = same row). On phones they stack into one column.
-- **Primary / Secondary** — `Primary` sections appear as links in the top navigation bar. `Secondary` sections still show on the page but are **not** in the nav.
+- **Primary / Secondary / Hide** — where the section appears in navigation:
+  - `Primary` — a link in the top navigation bar.
+  - `Secondary` — a link in the hamburger (☰) menu only. On phones, Secondary links are listed after the Primary ones.
+  - `Hide` — no navigation link at all; the section still shows on the page.
+- **(Nav name)** *(optional)* — a short label for the nav/menu link, in parentheses right after the level, e.g. `Primary(Pricing)` or `Secondary(Time Capsule)`. If you leave it off, the section's first `HEADER` is used. Keep these short so the navbar stays on one line.
 - **Top / Bottom** *(optional, only for `L`/`R` sections)* — when a side-by-side pair stacks on a phone, `Top` shows first and `Bottom` shows second. If you leave it off, the left one is on top.
+
+The navbar always stays on one line: if there are too many Primary links to fit, they all move into the ☰ menu automatically.
 
 Examples:
 ```
-03 Primary            → 3rd section, full width, shown in the nav
-09 Secondary          → 9th section, full width, NOT in the nav
-L04 Primary Top       → 4th row, left column, in the nav, shows first on phones
-R04 Primary Bottom    → 4th row, right column, in the nav, shows second on phones
+03 Primary(Pricing)          → 3rd section, full width, navbar link labelled "Pricing"
+09 Hide                      → 9th section, full width, not in any menu
+L04 Secondary(Send) Top      → 4th row, left column, in the ☰ menu, shows first on phones
+R04 Secondary(Packaging) Bottom → 4th row, right column, in the ☰ menu, shows second on phones
 ```
 
 ### The rest of the file
@@ -48,7 +54,7 @@ Every following line starts with a keyword that sets how it looks:
 
 Example section file:
 ```
-02 Primary
+02 Primary(How It Works)
 HEADER How It Works
 SUBHEADER Entirely by mail
 BODY First, encrypt your drive.
@@ -58,7 +64,7 @@ NOTE A USPS Small Flat-Rate Box.
 ```
 
 ### Tips
-- The **nav-bar label** for a section is its first `HEADER`. Keep headers short so the nav stays tidy.
+- The **nav label** is the `(Nav name)` on the first line, or the section's first `HEADER` if you omit it. Keep it short so the navbar stays on one line.
 - Use a **different two-digit number** for each section (or L/R pair) so the order is never ambiguous.
 - Text is shown exactly as typed — there is no Markdown or HTML formatting, which also keeps it safe.
 - To **remove** a section, delete its `.txt` file. To **add** one, create a new `.txt` file with a first line as above.

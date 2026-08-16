@@ -1,4 +1,4 @@
-00 Secondary
+00 Hide
 HEADER Offline. Offsite. Anonymous.
 SUBHEADER Long-term data backup by mail — no accounts, no tracking, no cloud.
 BODY OfflineOffsite stores your data the safest way there is: physically, and nowhere near the internet. You mail us a drive, we keep it offline and offsite, and we mail it back when you ask.

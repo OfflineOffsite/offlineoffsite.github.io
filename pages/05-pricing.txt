@@ -1,4 +1,4 @@
-05 Primary
+05 Primary(Pricing)
 HEADER Pricing
 SUBHEADER Simple, flat, cash by mail.
 BODY Standard offsite storage: [PLACEHOLDER] per device, per term.
