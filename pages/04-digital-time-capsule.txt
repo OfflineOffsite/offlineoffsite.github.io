@@ -1,4 +1,4 @@
-04 Secondary(Time Capsule)
+04 (Time Capsule) Secondary
 BACKGROUND #0B1D47 12%
 HEADER
 Digital Time Capsule

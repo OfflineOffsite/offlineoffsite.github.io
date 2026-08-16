@@ -1,4 +1,4 @@
-05 Primary(Pricing)
+05 (Pricing) Primary
 BACKGROUND #0E2352 12%
 HEADER
 Pricing

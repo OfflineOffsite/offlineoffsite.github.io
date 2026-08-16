@@ -1,4 +1,4 @@
-L02 Secondary(Send) Top
+02L (Send) Secondary Top
 BACKGROUND #0B1D47 12%
 HEADER
 What To Send

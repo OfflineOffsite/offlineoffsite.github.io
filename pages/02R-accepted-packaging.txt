@@ -1,4 +1,4 @@
-R02 Secondary(Packaging) Bottom
+02R (Packaging) Secondary Bottom
 HEADER
 Accepted Packaging
 BL

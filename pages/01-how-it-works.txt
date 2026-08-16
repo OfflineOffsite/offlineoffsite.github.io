@@ -1,4 +1,4 @@
-01 Primary(How It Works)
+01 (How It Works) Primary
 BACKGROUND #0E2352 12%
 HEADER
 How It Works

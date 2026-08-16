@@ -20,8 +20,8 @@ const BLOCKS = {
   NL: { tag: "ol", defAlign: "l" }
 };
 const KW_SET = new Set([...Object.keys(BLOCKS), "BACKGROUND", "DEFAULT"]);
-const POS_RE = /^([LR]?)(\d{2,})$/;
-const DIR_RE = /^(Primary|Secondary|Hide)(?:\(([^)]*)\))?(?:\s+(Top|Bottom))?$/;
+const POS_RE = /^(\d{2,})([LR]?)$/;
+const DIR_RE = /^(?:\(([^)]*)\)\s*)?(Primary|Secondary|Hide)(?:\s+(Top|Bottom))?$/;
 const KW_RE = /^([A-Z]+)(?:\(([CJLR])\))?$/;
 const COLOR_RE = /^#[0-9A-Fa-f]{3,8}$/;
 const PCT_RE = /^(\d{1,3})%$/;
@@ -128,10 +128,10 @@ function parseSection(filename, raw) {
   const dm = rest.match(DIR_RE);
   if (!dm) { console.warn(`[OfflineOffsite] ${filename}: bad directive “${rest}”, skipped`); return null; }
 
-  const column = pm[1];
-  const orderNum = parseInt(pm[2], 10);
-  const visibility = dm[1];
-  const navLabel = dm[2] != null ? dm[2].trim() : null;
+  const orderNum = parseInt(pm[1], 10);
+  const column = pm[2];
+  const navLabel = dm[1] != null ? dm[1].trim() : null;
+  const visibility = dm[2];
   let stack = dm[3];
   if (stack !== "Top" && stack !== "Bottom") stack = column === "R" ? "Bottom" : "Top";
 
@@ -452,7 +452,7 @@ function compareSections(a, b) {
 }
 function rank(col) { return col === "" ? 0 : col === "L" ? 1 : 2; }
 function stripOrderPrefix(filename) {
-  return filename.replace(/\.txt$/i, "").replace(/^[LR]?\d{2,}[-_ ]*/i, "");
+  return filename.replace(/\.txt$/i, "").replace(/^\d{2,}[LR]?[-_ ]*/i, "");
 }
 function slug(str) {
   return str.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "section";

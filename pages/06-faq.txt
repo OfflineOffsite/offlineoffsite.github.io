@@ -1,4 +1,4 @@
-06 Primary(FAQ)
+06 (FAQ) Primary
 BACKGROUND #0B1D47 12%
 HEADER
 FAQ

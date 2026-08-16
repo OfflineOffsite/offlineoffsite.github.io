@@ -1,4 +1,4 @@
-L03 Secondary(Payment) Top
+03L (Payment) Secondary Top
 BACKGROUND #0E2352 12%
 HEADER
 Payment

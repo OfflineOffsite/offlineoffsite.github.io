@@ -17,27 +17,27 @@ every time it loads and shows the sections in the order you choose.
 The first line tells the site **where** the section goes:
 
 ```
-<position> <Primary|Secondary|Hide>[(Nav name)] [Top|Bottom]
+<position> [(Nav name)] <Primary|Secondary|Hide> [Top|Bottom]
 ```
 
 - **position** — controls order and layout:
   - `NN` — a normal full-width section (e.g. `01`, `05`). `NN` is a two-digit number; **lower numbers appear higher up the page.**
-  - `LNN` / `RNN` — a **side-by-side** pair. `L05` is the left column and `R05` is the right column of the same row (same number = same row). On phones they stack into one column.
+  - `NNL` / `NNR` — a **side-by-side** pair: the number first, then `L` (left column) or `R` (right column). `05L` and `05R` share one row (same number = same row). On phones they stack into one column. Name the files the same way, e.g. `05L-payment.txt`.
+- **(Nav name)** *(optional)* — a short label for the nav/menu link, in parentheses **right after the position**, e.g. `(Pricing)` or `(Time Capsule)`. If you leave it off, the section's first `HEADER` is used. Keep these short so the navbar stays on one line.
 - **Primary / Secondary / Hide** — where the section appears in navigation:
   - `Primary` — a link in the top navigation bar.
   - `Secondary` — a link in the hamburger (☰) menu only. On phones, Secondary links are listed after the Primary ones.
   - `Hide` — no navigation link at all; the section still shows on the page.
-- **(Nav name)** *(optional)* — a short label for the nav/menu link, in parentheses right after the level, e.g. `Primary(Pricing)` or `Secondary(Time Capsule)`. If you leave it off, the section's first `HEADER` is used. Keep these short so the navbar stays on one line.
 - **Top / Bottom** *(optional, only for `L`/`R` sections)* — when a side-by-side pair stacks on a phone, `Top` shows first and `Bottom` shows second. If you leave it off, the left one is on top.
 
 The navbar always stays on one line: if there are too many Primary links to fit, they all move into the ☰ menu automatically.
 
 Examples:
 ```
-03 Primary(Pricing)          → 3rd section, full width, navbar link labelled "Pricing"
-09 Hide                      → 9th section, full width, not in any menu
-L04 Secondary(Send) Top      → 4th row, left column, in the ☰ menu, shows first on phones
-R04 Secondary(Packaging) Bottom → 4th row, right column, in the ☰ menu, shows second on phones
+03 (Pricing) Primary            → 3rd section, full width, navbar link labelled "Pricing"
+09 Hide                         → 9th section, full width, not in any menu
+04L (Send) Secondary Top        → 4th row, left column, in the ☰ menu, shows first on phones
+04R (Packaging) Secondary Bottom → 4th row, right column, in the ☰ menu, shows second on phones
 ```
 
 ### The rest of the file
@@ -72,7 +72,7 @@ DEFAULT BACKGROUND #0B1D47 HEADER #B4C0DE SUBHEADER #ADB4C4 BODY #9FA1A6 BL #E6E
 
 Example section file:
 ```
-02 Primary(How It Works)
+02 (How It Works) Primary
 BACKGROUND #0E2352 10%
 HEADER
 How It Works

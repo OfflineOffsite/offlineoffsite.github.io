@@ -1,4 +1,4 @@
-R03 Secondary(Encryption) Bottom
+03R (Encryption) Secondary Bottom
 HEADER
 Encryption & Responsibility
 BODY
