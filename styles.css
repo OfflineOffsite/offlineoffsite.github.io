@@ -245,11 +245,14 @@ img { max-width: 100%; height: auto; display: block; border-radius: var(--radius
 .list-wrap ol {
   margin: 0;
   padding-left: 1.5em;
-  width: max-content;
   max-width: 100%;
   text-align: left;
   color: var(--text);
+  overflow-wrap: break-word;
 }
+/* Centered lists shrink to their content so the block can center; long items still wrap. */
+.list-wrap.align-c ul,
+.list-wrap.align-c ol { width: max-content; }
 .list-wrap li { margin: .3rem 0; }
 .list-wrap li::marker { color: var(--marker, currentColor); }
 
@@ -258,9 +261,10 @@ img { max-width: 100%; height: auto; display: block; border-radius: var(--radius
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--gap);
-  align-items: start;
+  align-items: stretch;
 }
-.row .section { padding: 1.4rem 0; }
+.row .section { padding: 1.4rem 0; min-width: 0; }
+.row .body-card { min-width: 0; overflow-wrap: break-word; }
 
 .divider { border: 0; border-top: 1px solid var(--border); margin: .5rem 0; }
 
