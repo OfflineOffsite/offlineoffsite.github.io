@@ -7,6 +7,6 @@ Payment is cash, enclosed with your parcel. We do not accept cards, checks, mone
 BODY
 Cash keeps the service anonymous: there is no transaction record tying your data to your identity.
 BODY
-Include the exact amount for your chosen storage term. See Pricing for current rates.
+Include the exact amount for your chosen storage term. See {"Pricing", local(Pricing)} for current rates.
 NOTE
 Conceal cash inside the folded form so it is not visible through the packaging.

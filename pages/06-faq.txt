@@ -13,7 +13,7 @@ No. We collect no personal information, create no accounts, and never access the
 SUBHEADER(L)
 What if my drive fails in storage?
 BODY
-We store media offline and untouched, but we cannot guarantee hardware. Encrypt your data and keep an independent backup. See Encryption & Responsibility.
+We store media offline and untouched, but we cannot guarantee hardware. Encrypt your data and keep an independent backup. See {"Encryption & Responsibility", local(Encryption)}.
 SUBHEADER(L)
 How do I get my device back?
 BODY

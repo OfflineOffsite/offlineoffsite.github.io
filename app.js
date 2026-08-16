@@ -30,6 +30,7 @@ const NARROW = 760;
 const FALLBACK_BG = "#0d1117";
 
 let DEFAULTS = {};
+let LINK_TARGETS = new Map();
 let primaryItems = [];
 let secondaryItems = [];
 
@@ -238,8 +239,15 @@ function render(sections) {
   sections.sort(compareSections);
   const main = document.getElementById("content");
   main.textContent = "";
-  const usedIds = new Set();
   const fallback = DEFAULTS.background || null;
+
+  const used = new Set();
+  LINK_TARGETS = new Map();
+  for (const s of sections) {
+    s.finalId = uniqueId(s.id, used);
+    const key = (s.label || "").trim().toLowerCase();
+    if (key && !LINK_TARGETS.has(key)) LINK_TARGETS.set(key, s.finalId);
+  }
 
   const bands = [];
   let k = 0;
@@ -276,11 +284,11 @@ function render(sections) {
     const innerWrap = document.createElement("div");
     innerWrap.className = "band-inner";
     if (b.kind === "full") {
-      innerWrap.appendChild(buildSectionEl(b.secs[0], usedIds, false));
+      innerWrap.appendChild(buildSectionEl(b.secs[0], false));
     } else {
       const row = document.createElement("div");
       row.className = "row";
-      for (const g of b.secs.slice().sort((a, c) => rank(a.column) - rank(c.column))) row.appendChild(buildSectionEl(g, usedIds, true));
+      for (const g of b.secs.slice().sort((a, c) => rank(a.column) - rank(c.column))) row.appendChild(buildSectionEl(g, true));
       innerWrap.appendChild(row);
     }
     bandEl.appendChild(innerWrap);
@@ -288,11 +296,11 @@ function render(sections) {
   });
 }
 
-function buildSectionEl(s, usedIds, inRow) {
+function buildSectionEl(s, inRow) {
   const el = document.createElement("section");
   el.className = "section";
   if (inRow) el.classList.add(s.stack === "Bottom" ? "stack-bottom" : "stack-top");
-  el.id = uniqueId(s.id, usedIds);
+  el.id = s.finalId;
   const inner = inRow ? document.createElement("div") : el;
   if (inRow) { inner.className = "body-card"; el.appendChild(inner); }
 
@@ -327,7 +335,7 @@ function buildSectionEl(s, usedIds, inRow) {
       if (marker) list.style.setProperty("--marker", marker);
       for (const it of items) {
         const li = document.createElement("li");
-        li.textContent = it;
+        appendRich(li, it);
         if (text) li.style.color = text;
         list.appendChild(li);
       }
@@ -368,8 +376,84 @@ function paragraphs(lines) {
 function appendBr(el, para) {
   para.forEach((ln, idx) => {
     if (idx) el.appendChild(document.createElement("br"));
-    el.appendChild(document.createTextNode(ln));
+    appendRich(el, ln);
   });
+}
+
+// Insert text that may contain link tokens: {"Display", local(NavName)} or {"Display", url(https://...)}
+// A backslash escapes the next character (\{ \} \\ \" ...), so braces/quotes can appear literally.
+function appendRich(el, text) {
+  let buf = "";
+  const flush = () => { if (buf) { el.appendChild(document.createTextNode(buf)); buf = ""; } };
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    if (ch === "\\") {
+      buf += i + 1 < text.length ? text[i + 1] : "\\";
+      i += i + 1 < text.length ? 2 : 1;
+    } else if (ch === "{") {
+      const link = parseLink(text, i);
+      if (link) { flush(); appendLink(el, link); i = link.end; }
+      else { buf += "{"; i++; }
+    } else {
+      buf += ch; i++;
+    }
+  }
+  flush();
+}
+
+// Parse a link token starting at `text[start] === "{"`. Returns {display, type, target, end} or null.
+function parseLink(text, start) {
+  let i = start + 1;
+  if (text[i] !== '"') return null;
+  i++;
+  let display = "", closed = false;
+  while (i < text.length) {
+    const c = text[i];
+    if (c === "\\") { if (i + 1 >= text.length) return null; display += text[i + 1]; i += 2; }
+    else if (c === '"') { i++; closed = true; break; }
+    else { display += c; i++; }
+  }
+  if (!closed) return null;
+  while (text[i] === " " || text[i] === "\t") i++;
+  if (text[i] !== ",") return null;
+  i++;
+  while (text[i] === " " || text[i] === "\t") i++;
+  const kw = /^(local|url)/i.exec(text.slice(i));
+  if (!kw) return null;
+  const type = kw[1].toLowerCase();
+  i += kw[1].length;
+  while (text[i] === " " || text[i] === "\t") i++;
+  if (text[i] !== "(") return null;
+  i++;
+  let target = "";
+  closed = false;
+  while (i < text.length) {
+    const c = text[i];
+    if (c === "\\") { if (i + 1 >= text.length) return null; target += text[i + 1]; i += 2; }
+    else if (c === ")") { i++; closed = true; break; }
+    else { target += c; i++; }
+  }
+  if (!closed || text[i] !== "}") return null;
+  return { display, type, target: target.trim(), end: i + 1 };
+}
+
+function appendLink(el, link) {
+  let a = null;
+  if (link.type === "local") {
+    const id = LINK_TARGETS.get(link.target.toLowerCase());
+    if (id) { a = document.createElement("a"); a.href = "#" + id; a.addEventListener("click", closeMenu); }
+    else console.warn(`[OfflineOffsite] link to unknown section “${link.target}”, shown as text`);
+  } else if (/^(https?:|mailto:)/i.test(link.target)) {
+    a = document.createElement("a");
+    a.href = link.target;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+  } else {
+    console.warn(`[OfflineOffsite] blocked link URL “${link.target}”, shown as text`);
+  }
+  if (a) { a.textContent = link.display; el.appendChild(a); }
+  else el.appendChild(document.createTextNode(link.display));
 }
 
 // Navigation

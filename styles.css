@@ -201,6 +201,8 @@ img { max-width: 100%; height: auto; display: block; border-radius: var(--radius
   scroll-margin-top: calc(var(--nav-h) + 12px);
   padding: 1.4rem 0;
 }
+.band-inner a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.band-inner a:hover { filter: brightness(1.15); }
 .align-c { text-align: center; }
 .align-j { text-align: justify; text-justify: inter-word; }
 .align-l { text-align: left; }

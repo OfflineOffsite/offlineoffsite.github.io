@@ -70,6 +70,16 @@ Examples:
 DEFAULT BACKGROUND #0B1D47 HEADER #B4C0DE SUBHEADER #ADB4C4 BODY #9FA1A6 BL #E6E9F0 #9FA1A6 NL #E6E9F0 #9FA1A6
 ```
 
+**Links** — you can put a link inside any text (body, headings, notes, list items):
+- To another section: `{"Display text", local(Nav name)}` — matches a section's nav name and scrolls to it. Example: `See {"Encryption & Responsibility", local(Encryption)}.`
+- To an external site: `{"Display text", url(https://example.com)}` — opens in a new tab. Allowed links: `http`, `https`, `mailto`.
+- The display text goes in quotes and may contain **any** character. If a `local(...)` name doesn't match any section, it just shows as plain text.
+
+**Typing special characters** — a backslash `\` escapes the next character, so you can write braces or quotes literally:
+- `\{` and `\}` show a literal `{` and `}` (and won't start a link), e.g. `\{cool\}` renders as `{cool}`.
+- `\"` shows a literal quote (useful inside a link's display text).
+- `\\` shows a single backslash.
+
 Example section file:
 ```
 02 (How It Works) Primary
